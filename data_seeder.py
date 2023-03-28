@@ -1,4 +1,38 @@
+from sqlalchemy import (
+    create_engine,
+    MetaData,
+    DateTime,
+    String,
+    Integer,
+    Boolean,
+    Table, Column)
+import pytz
+from random import randint, choice
+from faker import Faker
+from types import SimpleNamespace
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import registry, sessionmaker
 
+# Explicitly import the registry and declarative base for reflection
+mapper_registry = registry()
+DeclarativeBase = declarative_base()
+Base = mapper_registry.generate_base(cls=())
+
+class ModelMixin(Base):
+     # we build a mixin with a common method we would like to impl
+     @classmethod
+    def get_or_create(cls, *_, **kwargs):
+        context_id = kwargs.get("id")
+        user = cls.session.query(cls).filter_by(id=context_id).first()
+        if not user:
+            _object = cls(**kwargs)
+            cls.session.add(_object)
+            cls.session.commit()
+            return _object
+        
+        
 class DataSeeder:
     """
     This class is used to seed the database with data
